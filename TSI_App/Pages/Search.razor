@@ -1,0 +1,170 @@
+﻿@page "/search"
+@using TSI_App.Data;
+@using TSI_App.Database;
+@inject SearchService search
+
+<h1>Search</h1>
+    
+<div style="align-content:center; text-align:center; display:@showSearch">
+    <select @onchange="CheckOption">
+        <option selected>Date</option>
+        <option>Twitch Username</option>
+        <option>Both</option>
+    </select> <br />
+        
+    <label for="top">@label</label>
+    <input @bind="firstInput" id="top" style="width:45%;" /> <br />
+    <label for="bottom">@secondLabel</label>
+    <input @bind="secondInput" id="bottom" style="width:45%; display:@showSecondInput" /> <br />
+        
+    <button @onclick="SendSearch">Search</button>
+
+    <p style="color:red;">@displayError</p>
+</div>
+@*This is the search result div*@
+<div>
+    <table style="border-color:black;border-collapse:collapse">
+        <tr >
+            <th style="border: black 1px solid;padding:1em">Twitch Username</th>
+            <th style="border: black 1px solid;padding:1em">Date of Stream</th>
+            <th style="border: black 1px solid;padding:1em">More Details</th>
+        </tr>
+        @if (currentSearch.Streamer.Count == 1)
+            for (int ii = 0; ii < currentSearch.Streams.Count; ii++)
+            {
+                <tr>
+                    <td style="border: black 1px solid;padding:0.5em">@currentSearch.Streamer[0]</td>
+                    <td style="border: black 1px solid;padding: 0.5em">@currentSearch.Streams[ii].DateCreated.ToString("g")</td>
+                    <td style="border: black 1px solid;padding: 0.5em"><button @onclick="() => MoreDetails(ii)">More Details</button></td>
+                </tr>
+            }
+        else
+            for (int ii = 0; ii < currentSearch.Streamer.Count; ii++)
+            {
+                <tr>
+                    <td style="border: black 1px solid;padding: 0.5em">@currentSearch.Streamer[ii]</td>
+                    <td style="border: black 1px solid;padding: 0.5em">@currentSearch.Streams[ii].DateCreated.ToString("g")</td>
+                    <td style="border: black 1px solid;padding: 0.5em"><button @onclick="() => MoreDetails(ii)">More Details</button></td>
+                </tr>
+            }
+    </table>
+</div>
+
+
+
+@code {
+    private string filter = "Date";
+    private string label = "Date";
+    private string secondLabel = "";
+    private string showSecondInput = "none";
+    private string displayError = "";
+    private string showSearch = "";
+
+    private string firstInput = "";
+    private string secondInput = "";
+
+    private SearchResponse currentSearch = new SearchResponse();
+
+    private void CheckOption(ChangeEventArgs e)
+    {
+        filter = e.Value.ToString();
+        if (filter != "Date" && filter != "Twitch Username")
+        {
+            showSecondInput = "inherit";
+            label = "Date";
+            secondLabel = "Twitch";
+        }
+        else if (filter == "Twitch Username")
+        {
+            showSecondInput = "none";
+            secondLabel = "";
+            label = "Twitch Username: ";
+        }
+        else
+        {
+            showSecondInput = "none";
+            secondLabel = "";
+            label = "Date";
+        }
+    }
+
+    private void SendSearch()
+    {
+        currentSearch = new SearchResponse();
+        SearchResponse response;
+        if (filter == "Both")
+        {
+            if (!String.IsNullOrWhiteSpace(firstInput) && !String.IsNullOrWhiteSpace(secondInput))
+            {
+                DateTime? date = null;
+                try
+                {
+                    date = DateTime.Parse(firstInput);
+                }
+                catch (Exception e)
+                {
+                    displayError = "Invalid date! Please use format 'MM/DD/YYYY' ";
+                    date = null;
+                }
+                response = search.ExecuteSearch(date, secondInput);
+                if (response.Message != "Invalid twitch username")
+                {
+                    currentSearch = response;
+                    StateHasChanged();
+                }
+                else
+                {
+                    displayError = response.Message;
+                }
+            }
+            else
+            {
+                displayError = "Please fill both inputs";
+            }
+        }
+        else if (filter == "Date")
+        {
+            DateTime? date = null;
+            try
+            {
+                date = DateTime.Parse(firstInput);
+                response = search.ExecuteSearch(date, secondInput);
+                if (response.Message != "Invalid twitch username")
+                {
+                    currentSearch = response;
+                    displayError = "";
+                    StateHasChanged();
+                }
+                else
+                {
+                    displayError = response.Message;
+                    StateHasChanged();
+                }
+            }
+            catch (Exception e)
+            {
+                displayError = "Invalid date! Please use format 'MM/DD/YYYY' ";
+                date = null;
+            }
+        }
+        else
+        {
+            response = search.ExecuteSearch(null, firstInput);
+            if (response.Message != "Invalid twitch username")
+            {
+                currentSearch = response;
+                StateHasChanged();
+            }
+            else
+            {
+                displayError = response.Message;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void MoreDetails(int itemIndex)
+    {
+
+    }
+}

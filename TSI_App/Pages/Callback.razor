@@ -1,0 +1,47 @@
+﻿@page "/callback"
+
+@using TSI_App.Data
+@using TSI_App.Database
+@using TSI_App.JSON
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager navigationManager
+@inject SpotifyLoginService spotifyService
+
+@if (loginSuccess)
+{
+    <h1>Account successfully registered!</h1>
+}
+else
+{
+    <h1>Something went wrong! Better luck next time :/</h1>
+}
+
+@code {
+    private bool loginSuccess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitializedAsync();
+
+        string url = navigationManager.ToAbsoluteUri(navigationManager.Uri).ToString();
+        if (url.Contains("error"))
+        {
+            loginSuccess = false;
+            //do something
+        }
+        else
+        {
+            loginSuccess = true;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            SpotifyTokenResponse tokens = await spotifyService.GetTokenAsync(navigationManager.ToAbsoluteUri(navigationManager.Uri).ToString());
+            var ID = await localStorage.GetItemAsync<int>("ID");
+            spotifyService.SaveTokens(tokens, ID);
+        }
+    }
+}

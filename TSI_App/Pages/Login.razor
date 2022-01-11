@@ -1,0 +1,78 @@
+﻿@page "/login"
+@using TSI_App.Data;
+@inject NavigationManager navigationManager
+@inject LoginService loginService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+
+<div>
+    <h1>Login</h1>
+    Email    <input @bind="email" type="text" /><br />
+    Password <input @bind="password" type="password" /><br />
+    <button @onclick="loginUser">Login</button>
+    <br />
+
+    <h1>Create New User</h1>
+    Email            <input @bind="newEmail" /><br />
+    Twitch Username  <input @bind="twitchUsername" /><br />
+    Password         <input type="password" @bind="newPassword" /><br />
+    Confirm Password <input type="password" @bind="confirmPassword" /><br />
+    <button @onclick="createNewUser">Create</button>
+    <p style="color:red">@displayError</p>
+</div>
+
+@code {
+        const string SPOTIFY_CLIENT_ID = "1a4dc6b858f844e386a120a023479599";
+
+    private string email;
+    private string password;
+
+    private string newEmail;
+    private string twitchUsername;
+    private string newPassword;
+    private string confirmPassword;
+    private string displayError = "";
+
+    private async void createNewUser()
+    {
+        displayError = "";
+        if (!String.IsNullOrWhiteSpace(newPassword) && !String.IsNullOrWhiteSpace(confirmPassword))
+        {
+            if (newPassword == confirmPassword)
+            {
+                int id = loginService.AddUser(newEmail, newPassword, twitchUsername);
+                if (id > 0)
+                {
+                    await localStorage.SetItemAsync<int>("ID", id);
+                    await localStorage.SetItemAsync<string>("Email", email);
+                    spotifyLogin();
+                }
+                else
+                    displayError = "Error creating new user!";
+            }
+        }
+    }
+
+    private void spotifyLogin()
+    {
+        navigationManager.NavigateTo(
+        "https://accounts.spotify.com/authorize?client_id=" + SPOTIFY_CLIENT_ID +
+        "&response_type=code&redirect_uri=https%3A%2F%2Flocalhost%3A44355%2Fcallback&scope=user-read-currently-playing&state=34fFs29kd09");
+    }
+
+    private async void loginUser()
+    {
+        if (loginService.VerifyPassword(password, email))
+        {
+            int id = loginService.FindUser(email);
+            await localStorage.SetItemAsync<int>("ID", id);
+            await localStorage.SetItemAsync<string>("Email", email);
+
+            navigationManager.NavigateTo("/");
+        }
+        else
+        {
+            displayError = "Incorrect username or password! Try again";
+        }
+    }
+}

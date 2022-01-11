@@ -1,0 +1,34 @@
+﻿@page "/"
+@using TSI_App.JSON;
+@using TSI_App.Data;
+@using TSI_App.Database;
+@using Microsoft.Extensions.Hosting;
+@inject SpotifyLoginService spotifyService
+@inject NavigationManager navigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+@*<button style="display: inherit" @onclick="spotifyLogin">Spotify</button>*@
+<button @onclick="loginUser">Login</button>
+
+@code {
+    const string SPOTIFY_CLIENT_ID = "1a4dc6b858f844e386a120a023479599";
+
+    private void spotifyLogin()
+    {
+        navigationManager.NavigateTo(
+        "https://accounts.spotify.com/authorize?client_id=" + SPOTIFY_CLIENT_ID +
+        "&response_type=code&redirect_uri=https%3A%2F%2Flocalhost%3A44355%2Fcallback&scope=user-read-currently-playing&state=34fFs29kd09");
+    }
+
+    private void loginUser()
+    {
+        navigationManager.NavigateTo("/login");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitializedAsync();
+
+        //Save the new user's spotify tokens
+    }
+}
