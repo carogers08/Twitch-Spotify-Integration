@@ -18,10 +18,10 @@ namespace TSI_App.Data
     {
         private readonly ILogger _log;
 
-        const string TWITCH_CLIENT_ID = "oto5dc63lgjgznlexsg3pwqamfus6o";
-        const string TWITCH_CLIENT_SECRET = "1wozpbw034synjjdx64zu6nfzs8mnm";
-        const string SPOTIFY_CLIENT_ID = "1a4dc6b858f844e386a120a023479599";
-        const string SPOTIFY_CLIENT_SECRET = "75d28f9e70f445bb9555ccb3bffd45e6";
+        const string TWITCH_CLIENT_ID = "insert ID here";
+        const string TWITCH_CLIENT_SECRET = "insert secret here";
+        const string SPOTIFY_CLIENT_ID = "insert ID here";
+        const string SPOTIFY_CLIENT_SECRET = "insert secret here";
 
 
         private Timer _timer; //Calls the update method
